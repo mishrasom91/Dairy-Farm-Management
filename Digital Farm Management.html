@@ -1,0 +1,469 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Digital Farm Management</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=IBM+Plex+Mono:wght@500;600&family=Public+Sans:wght@400;500;600&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<style>
+/* Layout: sticky header with tab bar; single-column working area that becomes a 2-3 column grid on wide screens.
+   Palette: milk-white field, deep pasture green accent, semantic good/warn/crit kept separate from the accent. */
+:root{
+  --bg:#EEF2EF; --surface:#FFFFFF; --surface2:#E3EAE5; --ink:#14211B; --muted:#56675E; --line:#D0DBD3;
+  --accent:#1D6B57; --accent-ink:#FFFFFF; --good:#2E7D4F; --warn:#9A6212; --crit:#B3382C;
+  --font-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --font-body:"Public Sans","Segoe UI",system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1814; --surface:#17231D; --surface2:#1F2E26; --ink:#E6EFE9; --muted:#93A89C; --line:#2B3D33;
+  --accent:#4FB89B; --accent-ink:#07201A; --good:#5CC48A; --warn:#E0A84A; --crit:#EE7C6E; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1814; --surface:#17231D; --surface2:#1F2E26; --ink:#E6EFE9; --muted:#93A89C; --line:#2B3D33;
+  --accent:#4FB89B; --accent-ink:#07201A; --good:#5CC48A; --warn:#E0A84A; --crit:#EE7C6E; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.5;margin:0}
+h1,h2,h3{font-family:var(--font-display);margin:0;line-height:1.15;text-wrap:balance}
+button,input,select{font:inherit;color:inherit}
+a{color:var(--accent)}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--surface);z-index:10}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--surface);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px 4px}
+.brand{font-family:var(--font-display);font-weight:700;font-size:1.15rem;display:flex;align-items:center;gap:10px}
+.brand svg{width:26px;height:26px;flex:none}
+.sample{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:2px 9px;white-space:nowrap}
+nav{display:flex;gap:2px;overflow-x:auto}
+nav a{flex:1 0 auto;text-align:center;text-decoration:none;color:var(--muted);font-weight:600;font-size:.92rem;padding:10px 12px;border-bottom:3px solid transparent;white-space:nowrap}
+nav a[aria-current="page"]{color:var(--accent);border-bottom-color:var(--accent)}
+nav a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,.card-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+main{padding-block:20px 56px;display:flex;flex-direction:column;gap:20px}
+.page-title{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.page-title h1{font-size:1.6rem}
+.sub{color:var(--muted);font-size:.9rem}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr))}
+.grid.wide{grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr))}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+.panel h2{font-size:1.02rem;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.label{font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.big{font-family:var(--font-display);font-weight:700;font-size:2rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.big small{font-size:.9rem;font-weight:600;color:var(--muted)}
+.mono{font-family:var(--font-mono);font-weight:600;font-size:.82rem}
+.num{font-variant-numeric:tabular-nums}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0}
+.kv dt{color:var(--muted)}.kv dd{margin:0;font-weight:500;text-align:right;min-width:0;overflow-wrap:anywhere}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;font-weight:600;border-radius:99px;padding:2px 10px;background:var(--surface2);color:var(--ink);white-space:nowrap}
+.chip.good{background:color-mix(in srgb,var(--good) 18%,var(--surface));color:var(--good)}
+.chip.warn{background:color-mix(in srgb,var(--warn) 18%,var(--surface));color:var(--warn)}
+.chip.crit{background:color-mix(in srgb,var(--crit) 18%,var(--surface));color:var(--crit)}
+.chip::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.chip.plain::before{display:none}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:9px 16px;font-weight:600;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.btn.sm{padding:5px 11px;font-size:.85rem}
+.btn:hover{filter:brightness(1.08)}
+input,select{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0;max-width:100%}
+label{display:flex;flex-direction:column;gap:4px;font-size:.82rem;color:var(--muted);font-weight:600;min-width:0}
+.form{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));align-items:end;margin-top:10px}
+details>summary{cursor:pointer;color:var(--accent);font-weight:600;list-style:none;padding:4px 0}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:"+ ";font-weight:700}
+details[open]>summary::before{content:"– "}
+.alerts{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.alert{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:8px;background:var(--surface2);border-left:5px solid var(--warn)}
+.alert.crit{border-left-color:var(--crit)}
+.alert a{color:var(--ink);text-decoration:none;font-weight:500}
+.alert .when{font-size:.8rem;color:var(--muted);white-space:nowrap}
+.card-link{display:flex;flex-direction:column;gap:10px;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;min-width:0}
+.card-link:hover{border-color:var(--accent)}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.card-top h3{font-size:1.1rem}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.row{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.spark{width:100%;height:56px;display:block}
+.spark .a{fill:color-mix(in srgb,var(--accent) 16%,transparent)}
+.spark .l{fill:none;stroke:var(--accent);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.spark .d{fill:var(--accent)}
+.spark .g{stroke:var(--line);stroke-width:1}
+.meter{height:10px;border-radius:99px;background:var(--surface2);overflow:hidden}
+.meter>i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.meter.warn>i{background:var(--warn)}.meter.crit>i{background:var(--crit)}.meter.good>i{background:var(--good)}
+.hero{display:grid;gap:16px;grid-template-columns:1fr auto;align-items:center}
+@media (max-width:560px){.hero{grid-template-columns:1fr}}
+.qr{background:#fff;padding:10px;border-radius:8px;width:max-content;line-height:0;border:1px solid var(--line)}
+.qr svg{width:132px;height:132px}
+.qr.sm svg{width:112px;height:112px}
+.tagcard{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;text-decoration:none;color:inherit}
+.table{width:100%;border-collapse:collapse}
+.table th{text-align:left;font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:6px 8px 6px 0}
+.table td{padding:9px 8px 9px 0;border-top:1px solid var(--line);vertical-align:middle}
+.scroll{overflow-x:auto}
+.stock-actions{display:flex;gap:6px;align-items:center}
+.stock-actions input{width:76px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:600;z-index:20;max-width:90%}
+.drop{border:2px dashed var(--line);border-radius:10px;padding:22px;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center}
+.back{display:inline-block;margin-bottom:4px;text-decoration:none;font-weight:600}
+.two{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))}
+.hist{margin:8px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;font-size:.88rem;color:var(--muted)}
+.hist li{display:flex;justify-content:space-between;gap:10px}
+@media (prefers-reduced-motion:no-preference){.meter>i{transition:width .4s}}
+/* ease of use: big touch targets, 16px inputs, bottom tab bar on phones */
+input,select{font-size:16px;min-height:44px}
+.btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+.btn.sm{min-height:40px}
+.quick{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr))}
+.tile{display:flex;align-items:center;gap:14px;text-decoration:none;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;min-height:72px;font-weight:600}
+.tile:hover{border-color:var(--accent)}
+.tile svg,nav svg{width:26px;height:26px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tile .ic{display:grid;place-items:center;width:46px;height:46px;border-radius:12px;background:color-mix(in srgb,var(--accent) 14%,var(--surface));color:var(--accent);flex:none}
+.tile small{display:block;font-weight:400;color:var(--muted)}
+.welcome{background:color-mix(in srgb,var(--accent) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.welcome ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.milkrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.milkrow:first-of-type{border-top:0}
+.milkrow input{width:110px;font-size:1.15rem;text-align:right}
+.milkrow .nm{min-width:0}
+.milkrow .nm b{display:block}
+.sticky-save{position:sticky;bottom:calc(76px + env(safe-area-inset-bottom,0px));display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+@media (max-width:700px){
+  nav{position:fixed;left:0;right:0;bottom:0;z-index:12;background:var(--surface);border-top:1px solid var(--line);padding:6px max(8px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-right,0px));overflow:visible;gap:0}
+  nav a{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.72rem;padding:6px 2px;border-bottom:0;border-radius:10px;min-height:52px}
+  nav a[aria-current="page"]{background:color-mix(in srgb,var(--accent) 14%,var(--surface))}
+  main{padding-bottom:110px}
+  .toast{bottom:calc(90px + env(safe-area-inset-bottom,0px))}
+}
+@media (min-width:701px){nav svg{display:none}nav a{flex:0 0 auto}.sticky-save{bottom:16px}}
+</style>
+
+<header>
+  <div class="wrap">
+    <div class="bar">
+      <div class="brand">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="7" fill="var(--accent)"/><path d="M8 9h6v6H8zM18 9h6v6h-6zM8 19h6v5H8zM18 19h2v2h-2zM22 19h2v5h-2zM18 23h2v1h-2z" fill="var(--accent-ink)"/></svg>
+        Digital Farm Management
+      </div>
+      <span class="sample" title="Animals and stock shown are example data">Sample farm</span>
+    </div>
+    <nav id="nav" aria-label="Sections"></nav>
+  </div>
+</header>
+<div class="wrap"><main id="app"></main></div>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+(function(){
+"use strict";
+/* ---------- helpers ---------- */
+var DAY=86400000;
+function iso(d){var x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,10)}
+function today(){return iso(new Date())}
+function addDays(s,n){var d=new Date(s+"T00:00:00");d.setDate(d.getDate()+n);return iso(d)}
+function diff(a,b){return Math.round((new Date(a+"T00:00:00")-new Date(b+"T00:00:00"))/DAY)}
+function fd(s){return new Date(s+"T00:00:00").toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}
+function fds(s){return new Date(s+"T00:00:00").toLocaleDateString("en-IN",{day:"numeric",month:"short"})}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function r1(n){return Math.round(n*10)/10}
+function rel(n){return n===0?"today":n===1?"tomorrow":n===-1?"yesterday":n>0?"in "+n+" days":Math.abs(n)+" days ago"}
+function ageText(dob){var m=Math.floor(diff(today(),dob)/30.4);return m<24?m+" months":r1(m/12)+" years"}
+
+var VACC={ "FMD":{label:"FMD vaccine",every:180}, "HSBQ":{label:"HS + BQ vaccine",every:365}, "DEWORM":{label:"Deworming",every:90} };
+var SOON=14;
+
+/* ---------- seed data (relative to today so the sample always looks current) ---------- */
+function rnd(seed){var s=seed;return function(){s=(s*9301+49297)%233280;return s/233280}}
+function yieldsFor(base,seed,decl){var r=rnd(seed),out=[];for(var i=13;i>=0;i--){out.push({d:addDays(today(),-i),l:r1(base+(r()-.5)*1.6-(i*decl))})}return out}
+function weightsFor(now,gain,seed){var r=rnd(seed),out=[];for(var i=5;i>=0;i--){out.push({d:addDays(today(),-i*30),kg:Math.round(now-gain*i+(r()-.5)*6)})}return out}
+function vac(f,h,w){return [{v:"FMD",d:addDays(today(),-f)},{v:"HSBQ",d:addDays(today(),-h)},{v:"DEWORM",d:addDays(today(),-w)}]}
+function seed(){
+  var T=today();
+  var animals=[
+   {tag:"DF-101",name:"Lakshmi",breed:"Gir",dob:addDays(T,-1640),gest:283,calved:addDays(T,-150),served:addDays(T,-40),weights:weightsFor(445,4,1),yields:yieldsFor(14,2,.02),feed:{green:24,dry:6,conc:8.5,times:"6:00 · 12:30 · 18:00"},vacc:vac(165,200,60)},
+   {tag:"DF-102",name:"Gauri",breed:"HF crossbred",dob:addDays(T,-1900),gest:280,calved:addDays(T,-60),served:null,weights:weightsFor(520,-2,3),yields:yieldsFor(22,4,0),feed:{green:30,dry:6,conc:12,times:"5:30 · 12:00 · 18:30"},vacc:vac(170,120,95)},
+   {tag:"DF-103",name:"Kaveri",breed:"Sahiwal",dob:addDays(T,-2300),gest:283,calved:addDays(T,-380),served:addDays(T,-215),weights:weightsFor(470,3,5),yields:yieldsFor(9,6,.06),feed:{green:24,dry:6,conc:6,times:"6:00 · 12:30 · 18:00"},vacc:vac(120,300,70)},
+   {tag:"DF-104",name:"Radha",breed:"Jersey crossbred",dob:addDays(T,-2100),gest:279,calved:addDays(T,-410),served:addDays(T,-265),weights:weightsFor(405,5,7),yields:[],feed:{green:18,dry:7,conc:3,times:"6:00 · 17:00"},vacc:vac(100,150,110)},
+   {tag:"DF-105",name:"Ganga",breed:"Murrah buffalo",dob:addDays(T,-2500),gest:310,calved:addDays(T,-90),served:addDays(T,-20),weights:weightsFor(560,1,9),yields:yieldsFor(11,8,.03),feed:{green:32,dry:8,conc:9,times:"5:30 · 12:00 · 18:30"},vacc:vac(175,60,40)},
+   {tag:"DF-106",name:"Tulsi",breed:"HF crossbred",dob:addDays(T,-610),gest:280,calved:null,served:addDays(T,-100),weights:weightsFor(385,14,11),yields:[],feed:{green:20,dry:5,conc:3.5,times:"6:30 · 17:30"},vacc:vac(150,250,85)},
+   {tag:"DF-107",name:"Nandini",breed:"Gir",dob:addDays(T,-2800),gest:283,calved:addDays(T,-230),served:addDays(T,-100),weights:weightsFor(430,2,13),yields:yieldsFor(7,14,.02),feed:{green:22,dry:6,conc:5.5,times:"6:00 · 12:30 · 18:00"},vacc:vac(90,330,50)},
+   {tag:"DF-108",name:"Bhuri",breed:"Murrah buffalo",dob:addDays(T,-3300),gest:310,calved:addDays(T,-420),served:addDays(T,-300),weights:weightsFor(590,2,15),yields:[],feed:{green:22,dry:8,conc:4,times:"6:00 · 17:00"},vacc:vac(130,100,45)}
+  ];
+  return {
+    animals:animals,
+    feed:[
+     {name:"Green fodder (Napier)",stock:1800,daily:420,unit:"kg"},
+     {name:"Dry fodder (wheat straw)",stock:2400,daily:260,unit:"kg"},
+     {name:"Cattle feed concentrate",stock:380,daily:95,unit:"kg"},
+     {name:"Mineral mixture",stock:34,daily:1.2,unit:"kg"}
+    ],
+    meds:[
+     {name:"FMD vaccine",qty:12,unit:"doses",min:8,exp:addDays(T,200)},
+     {name:"HS + BQ vaccine",qty:10,unit:"doses",min:8,exp:addDays(T,40)},
+     {name:"Dewormer (albendazole)",qty:6,unit:"boluses",min:4,exp:addDays(T,300)},
+     {name:"Calcium oral gel",qty:2,unit:"bottles",min:3,exp:addDays(T,420)},
+     {name:"Mastitis ointment",qty:8,unit:"tubes",min:3,exp:addDays(T,150)}
+    ]
+  };
+}
+
+/* ---------- state + storage ---------- */
+var KEY="digital-farm-v1", S=null;
+function load(){try{var t=localStorage.getItem(KEY);if(t){var p=JSON.parse(t);if(p&&p.animals)return p}}catch(e){}return seed()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+S=load();
+
+/* ---------- derived animal info ---------- */
+function expCalving(a){return a.served?addDays(a.served,a.gest):null}
+function dryOffDate(a){var c=expCalving(a);if(c)return addDays(c,-60);if(a.calved)return addDays(a.calved,305);return null}
+function lact(a){
+  var T=today();
+  if(!a.calved){return {stage:"Heifer",cls:"plain",note:"Not yet calved"}}
+  var dry=dryOffDate(a), dim=diff(T,a.calved);
+  if(dry&&diff(dry,T)<=0){return {stage:"Dry",cls:"plain",dim:dim,dry:dry}}
+  var st=dim<100?"Early":dim<200?"Mid":"Late";
+  return {stage:st,cls:"good",dim:dim,dry:dry}
+}
+function todayYield(a){var y=a.yields[a.yields.length-1];return y&&y.d===today()?y.l:null}
+function vaccStatus(a,key){
+  var recs=a.vacc.filter(function(x){return x.v===key}).sort(function(x,y){return x.d<y.d?1:-1});
+  var last=recs[0]?recs[0].d:null, next=last?addDays(last,VACC[key].every):today();
+  return {last:last,next:next,days:diff(next,today()),recs:recs};
+}
+function animalByTag(t){t=String(t).toLowerCase();return S.animals.filter(function(a){return a.tag.toLowerCase()===t})[0]}
+function totalsByDay(){
+  var m={};S.animals.forEach(function(a){a.yields.forEach(function(y){m[y.d]=(m[y.d]||0)+y.l})});
+  var out=[];for(var i=13;i>=0;i--){var d=addDays(today(),-i);out.push({d:d,l:r1(m[d]||0)})}return out
+}
+
+/* ---------- alerts ---------- */
+function alerts(){
+  var A=[],T=today();
+  S.animals.forEach(function(a){
+    var c=expCalving(a);
+    if(c){var n=diff(c,T);if(n<=30&&n>=-14)A.push({lvl:n<=7?"crit":"warn",t:a.name+" is due to calve",w:n<0?"overdue "+(-n)+"d":rel(n),href:"#"+a.tag.toLowerCase(),k:n})}
+    var l=lact(a);if(l.stage!=="Dry"&&l.dry&&a.calved){var n2=diff(l.dry,T);if(n2>=0&&n2<=SOON)A.push({lvl:"warn",t:"Dry-off for "+a.name,w:rel(n2),href:"#"+a.tag.toLowerCase(),k:n2+1})}
+  });
+  Object.keys(VACC).forEach(function(k){
+    var over=0,soon=0,first=999;
+    S.animals.forEach(function(a){var v=vaccStatus(a,k);if(v.days<0)over++;else if(v.days<=SOON){soon++;first=Math.min(first,v.days)}});
+    if(over)A.push({lvl:"crit",t:VACC[k].label+" overdue for "+over+" animal"+(over>1?"s":""),w:"now",href:"#supplies",k:-1});
+    if(soon)A.push({lvl:"warn",t:VACC[k].label+" due for "+soon+" animal"+(soon>1?"s":""),w:rel(first),href:"#supplies",k:first});
+  });
+  S.feed.forEach(function(f){var d=f.daily?f.stock/f.daily:99;if(d<7)A.push({lvl:d<3?"crit":"warn",t:"Low stock: "+f.name,w:Math.floor(d)+" days left",href:"#supplies",k:d})});
+  S.meds.forEach(function(m){
+    if(m.qty<=m.min)A.push({lvl:m.qty===0?"crit":"warn",t:"Low stock: "+m.name,w:m.qty+" "+m.unit+" left",href:"#supplies",k:5});
+    var e=diff(m.exp,T);if(e<=60)A.push({lvl:e<0?"crit":"warn",t:m.name+(e<0?" has expired":" expires soon"),w:e<0?"expired":rel(e),href:"#supplies",k:e})
+  });
+  A.sort(function(x,y){return (x.lvl==="crit"?0:1)-(y.lvl==="crit"?0:1)||x.k-y.k});
+  return A;
+}
+function alertList(list){
+  if(!list.length)return '<p class="sub">Nothing needs attention.</p>';
+  return '<ul class="alerts">'+list.map(function(a){return '<li class="alert '+a.lvl+'"><a href="'+a.href+'">'+esc(a.t)+'</a><span class="when">'+esc(a.w)+'</span></li>'}).join("")+'</ul>'
+}
+
+/* ---------- small ui pieces ---------- */
+function spark(vals,fmt){
+  if(vals.length<2)return '<p class="sub">Not enough readings yet.</p>';
+  var w=300,h=56,p=5,mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);if(mx===mn){mx+=1;mn-=1}
+  var pts=vals.map(function(v,i){return [p+i*(w-2*p)/(vals.length-1),h-p-(v-mn)/(mx-mn)*(h-2*p)]});
+  var line=pts.map(function(q,i){return (i?"L":"M")+q[0].toFixed(1)+" "+q[1].toFixed(1)}).join(" ");
+  var area=line+" L"+pts[pts.length-1][0]+" "+h+" L"+pts[0][0]+" "+h+" Z",L=pts[pts.length-1];
+  return '<svg class="spark" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" role="img" aria-label="Trend from '+vals[0]+' to '+vals[vals.length-1]+'"><line class="g" x1="0" x2="'+w+'" y1="'+(h-1)+'" y2="'+(h-1)+'"/><path class="a" d="'+area+'"/><path class="l" d="'+line+'"/><circle class="d" cx="'+L[0]+'" cy="'+L[1]+'" r="3.5"/></svg>'
+}
+function qrBase(){try{return location.href.split("#")[0]}catch(e){return ""}}
+function qrSvg(tag,cls){
+  try{var q=qrcode(0,"M");q.addData(qrBase()+"#"+tag.toLowerCase());q.make();return '<div class="qr '+(cls||"")+'" role="img" aria-label="QR code for '+esc(tag)+'">'+q.createSvgTag({cellSize:4,margin:0,scalable:true})+'</div>'}
+  catch(e){return '<div class="qr">QR unavailable</div>'}
+}
+function toast(msg){var t=document.getElementById("toast");t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(function(){t.hidden=true},2400)}
+
+/* ---------- views ---------- */
+function overview(){
+  var tot=totalsByDay(),todayL=tot[tot.length-1].l,yday=tot[tot.length-2].l;
+  var T=today(),ym=T.slice(0,7);
+  var calving=S.animals.filter(function(a){var c=expCalving(a);return c&&c.slice(0,7)===ym&&c>=T}).sort(function(a,b){return expCalving(a)<expCalving(b)?-1:1});
+  var lactating=S.animals.filter(function(a){return lact(a).stage!=="Dry"&&lact(a).stage!=="Heifer"}).length;
+  var A=alerts();
+  var feedDays=Math.min.apply(null,S.feed.map(function(f){return f.daily?f.stock/f.daily:99}));
+  return '<div class="page-title"><h1>Farm today</h1><span class="sub">'+new Date().toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long"})+'</span></div>'+
+  (welcomeGone?'':'<section class="welcome"><b>Welcome. Here is how this works.</b><ol><li>Every animal has a QR tag. Scan it to open that animal.</li><li>Use <b>Milk</b> each morning and evening to log yields in one go.</li><li>Check <b>Needs attention</b> below for what to do today.</li></ol><div><button class="btn sm" data-act="welcome">Got it</button></div></section>')+
+  '<div class="quick">'+
+   '<a class="tile" href="#milk"><span class="ic">'+icon("milk")+'</span><span>Log milk<small>All animals at once</small></span></a>'+
+   '<a class="tile" href="#scan"><span class="ic">'+icon("scan")+'</span><span>Scan a tag<small>Open an animal</small></span></a>'+
+   '<a class="tile" href="#supplies"><span class="ic">'+icon("supplies")+'</span><span>Check supplies<small>Feed and medicine</small></span></a>'+
+  '</div>'+
+  '<div class="grid">'+
+   '<div class="panel"><div class="label">Milk today</div><div class="big num">'+r1(todayL)+' <small>L</small></div><div class="sub">'+(todayL>=yday?"Up ":"Down ")+r1(Math.abs(todayL-yday))+' L from yesterday · '+lactating+' in milk</div>'+spark(tot.map(function(x){return x.l}))+'</div>'+
+   '<div class="panel"><div class="label">Calving this month</div><div class="big num">'+calving.length+' <small>animal'+(calving.length===1?"":"s")+'</small></div>'+
+     (calving.length?'<ul class="hist">'+calving.map(function(a){return '<li><a href="#'+a.tag.toLowerCase()+'">'+esc(a.name)+'</a><span>'+fd(expCalving(a))+'</span></li>'}).join("")+'</ul>':'<p class="sub">No calvings expected before month end.</p>')+'</div>'+
+   '<div class="panel"><div class="label">Feed on hand</div><div class="big num">'+Math.floor(feedDays)+' <small>days at the lowest item</small></div><div class="sub">'+esc(S.feed.slice().sort(function(a,b){return a.stock/a.daily-b.stock/b.daily})[0].name)+'</div><div style="margin-top:10px"><a href="#supplies">Open supplies</a></div></div>'+
+  '</div>'+
+  '<section class="panel"><h2>Needs attention <span class="chip '+(A.some(function(a){return a.lvl==="crit"})?"crit":A.length?"warn":"good")+' plain">'+A.length+'</span></h2>'+alertList(A)+'</section>'
+}
+
+function herd(){
+  var q=(herd.q||"").toLowerCase();
+  var list=S.animals.filter(function(a){return !q||(a.name+" "+a.tag+" "+a.breed).toLowerCase().indexOf(q)>-1});
+  var nextNum=S.animals.reduce(function(m,a){return Math.max(m,parseInt(a.tag.split("-")[1],10)||0)},100)+1;
+  return '<div class="page-title"><h1>Herd</h1><a href="#tags" class="btn ghost sm" style="text-decoration:none">View QR tags</a></div>'+
+  '<div class="row"><label style="flex:1 1 220px">Search<input id="q" type="search" placeholder="Name, tag or breed" value="'+esc(herd.q||"")+'"></label></div>'+
+  '<div class="grid wide">'+list.map(function(a){
+    var l=lact(a),y=todayYield(a),c=expCalving(a),w=a.weights[a.weights.length-1];
+    var due=Object.keys(VACC).filter(function(k){return vaccStatus(a,k).days<=SOON}).length;
+    return '<a class="card-link" href="#'+a.tag.toLowerCase()+'"><div class="card-top"><div><h3>'+esc(a.name)+'</h3><div class="sub">'+esc(a.breed)+' · '+ageText(a.dob)+'</div></div><span class="mono">'+esc(a.tag)+'</span></div>'+
+     '<div class="chips"><span class="chip '+l.cls+'">'+l.stage+(l.stage==="Heifer"||l.stage==="Dry"?"":" lactation")+'</span>'+(c?'<span class="chip plain">Calves '+fds(c)+'</span>':'')+(due?'<span class="chip warn">'+due+' shot'+(due>1?"s":"")+' due</span>':'')+'</div>'+
+     '<div class="row"><span class="sub">'+(w?w.kg+' kg':'')+'</span><span class="num"><b>'+(y!==null?y+' L':'–')+'</b> <span class="sub">today</span></span></div></a>'
+  }).join("")+'</div>'+
+  (list.length?'':'<p class="sub">No animals match “'+esc(herd.q)+'”.</p>')+
+  '<section class="panel"><details><summary>Add an animal</summary><form data-form="addAnimal" class="form">'+
+    '<label>Tag<input name="tag" required value="DF-'+nextNum+'" pattern="DF-[0-9]+" title="Format DF-123"></label>'+
+    '<label>Name<input name="name" required></label>'+
+    '<label>Breed<input name="breed" required placeholder="e.g. Gir"></label>'+
+    '<label>Date of birth<input name="dob" type="date" required max="'+today()+'"></label>'+
+    '<label>Weight (kg)<input name="kg" type="number" min="1" step="1" required></label>'+
+    '<button class="btn">Add and create QR</button></form></details></section>'
+}
+
+function animal(a){
+  var T=today(),l=lact(a),c=expCalving(a),w=a.weights,lw=w[w.length-1],fw=w[0];
+  var perMonth=w.length>1?r1((lw.kg-fw.kg)/Math.max(1,diff(lw.d,fw.d)/30.4)):0;
+  var gestDay=a.served?diff(T,a.served):null,gp=a.served?Math.max(0,Math.min(100,gestDay/a.gest*100)):0;
+  var y=a.yields,ty=todayYield(a),avg7=y.length?r1(y.slice(-7).reduce(function(s,v){return s+v.l},0)/Math.min(7,y.length)):null;
+  var feedTotal=r1(a.feed.green+a.feed.dry+a.feed.conc);
+  var vk=Object.keys(VACC);
+  var calvDays=c?diff(c,T):null;
+  return '<div><a class="back" href="#herd">← Herd</a></div>'+
+  '<section class="panel"><div class="hero"><div><div class="label">Scanned animal</div><h1 style="font-size:2rem;margin:4px 0 6px">'+esc(a.name)+'</h1>'+
+    '<div class="chips"><span class="chip plain mono">'+esc(a.tag)+'</span><span class="chip '+l.cls+'">'+l.stage+(l.stage==="Heifer"||l.stage==="Dry"?"":" lactation")+'</span>'+(c&&calvDays<=30?'<span class="chip '+(calvDays<=7?"crit":"warn")+'">Calving '+rel(calvDays)+'</span>':'')+'</div>'+
+    '<dl class="kv" style="margin-top:14px;max-width:380px"><dt>Breed</dt><dd>'+esc(a.breed)+'</dd><dt>Born</dt><dd>'+fd(a.dob)+' · '+ageText(a.dob)+'</dd><dt>Weight</dt><dd class="num">'+lw.kg+' kg</dd></dl></div>'+qrSvg(a.tag)+'</div></section>'+
+  '<div class="two">'+
+   '<section class="panel"><h2>Body weight <span class="chip plain '+(perMonth>=0?"good":"warn")+'">'+(perMonth>=0?"+":"")+perMonth+' kg / month</span></h2>'+spark(w.map(function(x){return x.kg}))+
+     '<ul class="hist">'+w.slice(-3).reverse().map(function(x){return '<li><span>'+fd(x.d)+'</span><span class="num">'+x.kg+' kg</span></li>'}).join("")+'</ul>'+
+     '<details><summary>Log weight</summary><form data-form="weight" data-tag="'+a.tag+'" class="form"><label>Weight (kg)<input name="kg" type="number" min="1" step="1" required></label><button class="btn sm">Save</button></form></details></section>'+
+   '<section class="panel"><h2>Feeding <span class="sub num">'+feedTotal+' kg / day</span></h2>'+
+     '<dl class="kv"><dt>Green fodder</dt><dd class="num">'+a.feed.green+' kg</dd><dt>Dry fodder</dt><dd class="num">'+a.feed.dry+' kg</dd><dt>Concentrate</dt><dd class="num">'+a.feed.conc+' kg</dd><dt>Schedule</dt><dd class="mono">'+esc(a.feed.times)+'</dd></dl>'+
+     '<details><summary>Change ration</summary><form data-form="ration" data-tag="'+a.tag+'" class="form"><label>Green (kg)<input name="green" type="number" step="0.5" min="0" value="'+a.feed.green+'"></label><label>Dry (kg)<input name="dry" type="number" step="0.5" min="0" value="'+a.feed.dry+'"></label><label>Concentrate (kg)<input name="conc" type="number" step="0.5" min="0" value="'+a.feed.conc+'"></label><label>Schedule<input name="times" value="'+esc(a.feed.times)+'"></label><button class="btn sm">Save</button></form></details></section>'+
+   '<section class="panel"><h2>Vaccination</h2><div class="scroll"><table class="table"><thead><tr><th>Shot</th><th>Last done</th><th>Next due</th></tr></thead><tbody>'+
+     vk.map(function(k){var v=vaccStatus(a,k),cls=v.days<0?"crit":v.days<=SOON?"warn":"good";return '<tr><td>'+VACC[k].label+'</td><td class="num">'+(v.last?fds(v.last):'None')+'</td><td><span class="chip '+cls+'">'+fds(v.next)+'</span></td></tr>'}).join("")+
+     '</tbody></table></div>'+
+     '<details><summary>Record a shot</summary><form data-form="vacc" data-tag="'+a.tag+'" class="form"><label>Shot<select name="v">'+vk.map(function(k){return '<option value="'+k+'">'+VACC[k].label+'</option>'}).join("")+'</select></label><label>Date<input name="d" type="date" required value="'+T+'" max="'+T+'"></label><button class="btn sm">Save</button></form></details></section>'+
+   '<section class="panel"><h2>Reproduction</h2>'+
+     (a.served?'<div class="row"><span class="big num">Day '+gestDay+' <small>of '+a.gest+'</small></span></div><div class="meter '+(calvDays<=7?"crit":calvDays<=30?"warn":"")+'" role="img" aria-label="Gestation '+Math.round(gp)+' percent"><i style="width:'+gp+'%"></i></div>'+
+       '<dl class="kv" style="margin-top:12px"><dt>Served on</dt><dd>'+fd(a.served)+'</dd><dt>Expected calving</dt><dd>'+fd(c)+' <span class="sub">('+rel(calvDays)+')</span></dd></dl>'
+     :'<p class="sub" style="margin:0 0 8px">'+(a.calved?'Not currently in calf. Last calved '+fd(a.calved)+'.':'Not served yet.')+'</p>')+
+     '<details><summary>'+(a.served?'Record calving':'Record service')+'</summary><form data-form="'+(a.served?"calving":"service")+'" data-tag="'+a.tag+'" class="form"><label>Date<input name="d" type="date" required value="'+T+'" max="'+T+'"></label><button class="btn sm">Save</button></form></details></section>'+
+   '<section class="panel"><h2>Lactation <span class="chip '+l.cls+'">'+l.stage+'</span></h2>'+
+     (l.stage==="Heifer"?'<p class="sub">Starts after first calving.</p>':
+      '<dl class="kv"><dt>Days in milk</dt><dd class="num">'+(a.calved?diff(T,a.calved):'–')+'</dd><dt>Dry-off date</dt><dd>'+(l.dry?fd(l.dry):'–')+(l.dry&&l.stage!=="Dry"?' <span class="sub">('+rel(diff(l.dry,T))+')</span>':'')+'</dd>'+(l.stage!=="Dry"?'<dt>Today</dt><dd class="num">'+(ty!==null?ty+' L':'Not logged')+'</dd><dt>7-day average</dt><dd class="num">'+(avg7!==null?avg7+' L':'–')+'</dd>':'')+'</dl>'+(l.stage!=="Dry"?spark(y.map(function(x){return x.l})):''))+
+     (l.stage==="Heifer"||l.stage==="Dry"?'':'<details><summary>Log today’s milk</summary><form data-form="milk" data-tag="'+a.tag+'" class="form"><label>Litres<input name="l" type="number" min="0" step="0.1" required></label><button class="btn sm">Save</button></form></details>')+'</section>'+
+  '</div>'
+}
+
+function supplies(){
+  var T=today(),vk=Object.keys(VACC);
+  var herdVacc=vk.map(function(k){
+    var over=0,soon=0,first=null;
+    S.animals.forEach(function(a){var v=vaccStatus(a,k);if(v.days<0)over++;else if(v.days<=SOON){soon++;if(first===null||v.days<first)first=v.days}});
+    return {k:k,over:over,soon:soon,first:first}
+  });
+  var A=alerts().filter(function(a){return a.href==="#supplies"});
+  return '<div class="page-title"><h1>Farm supplies</h1><span class="sub">Feed, medicine and herd-wide shots</span></div>'+
+  '<section class="panel"><h2>Alerts <span class="chip plain '+(A.length?"warn":"good")+'">'+A.length+'</span></h2>'+alertList(A)+'</section>'+
+  '<section class="panel"><h2>Feed supply</h2><div class="scroll"><table class="table"><thead><tr><th>Item</th><th>In stock</th><th>Per day</th><th>Days left</th><th>Adjust</th></tr></thead><tbody>'+
+   S.feed.map(function(f,i){var d=f.daily?f.stock/f.daily:99,cls=d<3?"crit":d<7?"warn":"good";
+    return '<tr><td>'+esc(f.name)+'</td><td class="num">'+r1(f.stock)+' '+f.unit+'</td><td class="num">'+f.daily+' '+f.unit+'</td><td style="min-width:120px"><div class="meter '+cls+'"><i style="width:'+Math.min(100,d/30*100)+'%"></i></div><span class="chip plain '+cls+'" style="margin-top:4px">'+Math.floor(d)+' days</span></td>'+
+    '<td><form class="stock-actions" data-form="stock" data-kind="feed" data-i="'+i+'"><input name="n" type="number" min="0" step="any" required aria-label="Amount for '+esc(f.name)+'" placeholder="'+f.unit+'"><button class="btn sm" name="op" value="add">Add</button><button class="btn sm ghost" name="op" value="use">Use</button></form></td></tr>'}).join("")+
+   '</tbody></table></div></section>'+
+  '<section class="panel"><h2>Medicine supply</h2><div class="scroll"><table class="table"><thead><tr><th>Item</th><th>In stock</th><th>Expires</th><th>Adjust</th></tr></thead><tbody>'+
+   S.meds.map(function(m,i){var e=diff(m.exp,T),low=m.qty<=m.min;
+    return '<tr><td>'+esc(m.name)+'</td><td><span class="num">'+m.qty+' '+m.unit+'</span> '+(low?'<span class="chip warn">Low</span>':'')+'</td><td><span class="chip '+(e<0?"crit":e<=60?"warn":"good")+'">'+fd(m.exp)+'</span></td>'+
+    '<td><form class="stock-actions" data-form="stock" data-kind="meds" data-i="'+i+'"><input name="n" type="number" min="0" step="1" required aria-label="Amount for '+esc(m.name)+'" placeholder="'+m.unit+'"><button class="btn sm" name="op" value="add">Add</button><button class="btn sm ghost" name="op" value="use">Use</button></form></td></tr>'}).join("")+
+   '</tbody></table></div></section>'+
+  '<section class="panel"><h2>Herd-wide vaccination</h2><div class="grid">'+herdVacc.map(function(h){
+    var cls=h.over?"crit":h.soon?"warn":"good";
+    return '<div><div class="label">'+VACC[h.k].label+'</div><div class="chips" style="margin-top:6px"><span class="chip '+cls+'">'+(h.over?h.over+' overdue':h.soon?h.soon+' due '+rel(h.first):'All up to date')+'</span></div><div class="sub">Every '+VACC[h.k].every+' days</div></div>'}).join("")+'</div></section>'
+}
+
+function milk(){
+  var T=today(),cows=S.animals.filter(function(a){var s=lact(a).stage;return s!=="Dry"&&s!=="Heifer"});
+  var done=cows.filter(function(a){return todayYield(a)!==null}).length;
+  return '<div class="page-title"><h1>Log milk</h1><span class="sub">'+done+' of '+cows.length+' logged today</span></div>'+
+  '<form data-form="milkall"><section class="panel"><p class="sub" style="margin:0 0 6px">Enter litres for today. Leave blank to skip an animal.</p>'+
+  cows.map(function(a){var y=todayYield(a),last=a.yields.length>1?a.yields[a.yields.length-2].l:null;
+    return '<div class="milkrow"><div class="nm"><b>'+esc(a.name)+'</b><span class="sub mono">'+esc(a.tag)+(last!==null?' · yesterday '+last+' L':'')+'</span></div><input name="'+esc(a.tag)+'" type="number" inputmode="decimal" min="0" step="0.1" placeholder="L" aria-label="Litres for '+esc(a.name)+'" value="'+(y!==null?y:'')+'"></div>'}).join("")+
+  '</section><div class="sticky-save" style="margin-top:14px"><span class="sub">Today so far: <b class="num" style="color:var(--ink)">'+r1(totalsByDay().slice(-1)[0].l)+' L</b></span><button class="btn">Save milk</button></div></form>'
+}
+
+function scan(){
+  return '<div class="page-title"><h1>Scan a tag</h1></div>'+
+  '<div class="two"><section class="panel"><h2>Upload a photo of the QR tag</h2><div class="drop"><p class="sub" style="margin:0">Take a photo of the tag or choose an image. The app reads the code and opens that animal.</p><label class="btn" style="color:var(--accent-ink);cursor:pointer;flex-direction:row">Choose photo<input id="qrfile" type="file" accept="image/*" capture="environment" style="position:absolute;opacity:0;width:1px;height:1px"></label><div id="scanmsg" class="sub" role="status"></div></div></section>'+
+  '<section class="panel"><h2>Enter the tag number</h2><form data-form="lookup" class="form"><label>Tag<input name="tag" required placeholder="DF-101" autocomplete="off"></label><button class="btn">Open</button></form><p class="sub">On a phone, the normal camera app can also scan these tags and open the animal directly once this app is hosted at its own address.</p></section></div>'
+}
+
+function tags(){
+  return '<div class="page-title"><h1>QR tags</h1><span class="sub">One per animal. Each opens that animal’s dashboard.</span></div>'+
+  '<div class="grid">'+S.animals.map(function(a){return '<a class="tagcard" href="#'+a.tag.toLowerCase()+'">'+qrSvg(a.tag,"sm")+'<div><b>'+esc(a.name)+'</b><div class="mono">'+esc(a.tag)+'</div></div></a>'}).join("")+'</div>'+
+  '<section class="panel"><details><summary>Sample data</summary><p class="sub">The animals and stock here are examples. Changes you make are saved in this browser only.</p><button class="btn ghost sm" data-act="reset">Reset sample data</button></details></section>'
+}
+
+/* ---------- router ---------- */
+var IC={
+ home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
+ herd:'<path d="M4 9c0-3 2-5 5-5h6c3 0 5 2 5 5v4c0 3-2 5-5 5H9c-3 0-5-2-5-5z"/><circle cx="9" cy="11" r="1"/><circle cx="15" cy="11" r="1"/><path d="M9 15h6"/>',
+ milk:'<path d="M8 3h8l1 4v13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V7z"/><path d="M7 11h10"/><path d="M12 14v4"/>',
+ supplies:'<path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/>',
+ scan:'<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M4 12h16"/>'
+};
+function icon(n){return '<svg viewBox="0 0 24 24" aria-hidden="true">'+IC[n]+'</svg>'}
+var TABS=[["home","Today"],["herd","Herd"],["milk","Milk"],["supplies","Supplies"],["scan","Scan"]];
+var welcomeGone=false;try{welcomeGone=localStorage.getItem("digital-farm-welcome")==="1"}catch(e){}
+function route(){var h=(location.hash||"").replace("#","").toLowerCase();return h||"home"}
+function render(){
+  var r=route(),html,active=r;
+  if(/^df-\d+$/.test(r)){var a=animalByTag(r);if(a){html=animal(a);active="herd"}else{html='<div class="panel"><h2>Tag not found</h2><p class="sub">No animal has tag '+esc(r.toUpperCase())+'.</p><a href="#herd">Back to herd</a></div>'}}
+  else if(r==="herd")html=herd();else if(r==="supplies")html=supplies();else if(r==="scan")html=scan();else if(r==="milk")html=milk();else if(r==="tags"){html=tags();active="herd"}else{html=overview();active="home"}
+  document.getElementById("app").innerHTML=html;
+  document.getElementById("nav").innerHTML=TABS.map(function(t){return '<a href="#'+t[0]+'"'+(t[0]===active?' aria-current="page"':'')+'>'+icon(t[0])+'<span>'+t[1]+'</span></a>'}).join("");
+}
+window.addEventListener("hashchange",function(){render();window.scrollTo(0,0)});
+
+/* ---------- actions ---------- */
+function openNow(el){var d=el.closest("details");return !!(d&&d.open)}
+document.addEventListener("submit",function(e){
+  var f=e.target,kind=f.getAttribute("data-form");if(!kind)return;e.preventDefault();
+  var v=function(n){return f.elements[n]?f.elements[n].value:""},a=f.dataset.tag?animalByTag(f.dataset.tag):null,T=today();
+  if(kind==="weight"){a.weights.push({d:T,kg:Number(v("kg"))});toast("Weight saved")}
+  else if(kind==="milk"){var x=Number(v("l"));a.yields=a.yields.filter(function(y){return y.d!==T});a.yields.push({d:T,l:x});toast("Milk logged")}
+  else if(kind==="vacc"){a.vacc.push({v:v("v"),d:v("d")});toast("Shot recorded")}
+  else if(kind==="service"){a.served=v("d");toast("Service recorded")}
+  else if(kind==="calving"){a.calved=v("d");a.served=null;a.yields=[];toast("Calving recorded. Lactation restarted.")}
+  else if(kind==="ration"){a.feed={green:Number(v("green")),dry:Number(v("dry")),conc:Number(v("conc")),times:v("times")};toast("Ration updated")}
+  else if(kind==="stock"){var it=S[f.dataset.kind][Number(f.dataset.i)],n=Number(v("n")),op=e.submitter&&e.submitter.value;if(!(n>0))return;it[f.dataset.kind==="feed"?"stock":"qty"]=Math.max(0,r1((f.dataset.kind==="feed"?it.stock:it.qty)+(op==="add"?n:-n)));toast(op==="add"?"Stock added":"Stock updated")}
+  else if(kind==="milkall"){var cnt=0;S.animals.forEach(function(an){var el=f.elements[an.tag];if(el&&el.value!==""&&Number(el.value)>=0){an.yields=an.yields.filter(function(y){return y.d!==T});an.yields.push({d:T,l:Number(el.value)});cnt++}});toast(cnt?cnt+" animals saved":"Nothing to save")}
+  else if(kind==="lookup"){var t=v("tag").trim().toUpperCase();if(animalByTag(t)){location.hash=t.toLowerCase()}else toast("No animal with tag "+t);return}
+  else if(kind==="addAnimal"){var tag=v("tag").trim().toUpperCase();if(animalByTag(tag)){toast("Tag "+tag+" already exists");return}
+    S.animals.push({tag:tag,name:v("name").trim(),breed:v("breed").trim(),dob:v("dob"),gest:283,calved:null,served:null,weights:[{d:T,kg:Number(v("kg"))}],yields:[],feed:{green:15,dry:4,conc:2,times:"6:00 · 17:00"},vacc:[]});
+    save();location.hash=tag.toLowerCase();toast("Animal added. Print its QR from the animal page.");return}
+  save();render()
+});
+document.addEventListener("input",function(e){if(e.target.id==="q"){herd.q=e.target.value;var p=e.target.selectionStart;render();var q=document.getElementById("q");q.focus();q.setSelectionRange(p,p)}});
+document.addEventListener("click",function(e){var b=e.target.closest("[data-act]");if(b&&b.dataset.act==="welcome"){welcomeGone=true;try{localStorage.setItem("digital-farm-welcome","1")}catch(x){}render()}if(b&&b.dataset.act==="reset"){try{localStorage.removeItem(KEY)}catch(x){}S=seed();render();toast("Sample data restored")}});
+document.addEventListener("change",function(e){
+  if(e.target.id!=="qrfile"||!e.target.files[0])return;
+  var msg=document.getElementById("scanmsg");msg.textContent="Reading…";
+  var url=URL.createObjectURL(e.target.files[0]),img=new Image();
+  img.onload=function(){
+    var s=Math.min(1,1100/Math.max(img.width,img.height)),c=document.createElement("canvas");c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);
+    var ctx=c.getContext("2d");ctx.drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);
+    var res=null;try{var d=ctx.getImageData(0,0,c.width,c.height);res=jsQR(d.data,d.width,d.height,{inversionAttempts:"attemptBoth"})}catch(x){}
+    if(!res){msg.textContent="No QR code found. Try a closer, well-lit photo.";return}
+    var m=String(res.data).match(/df-\d+/i);
+    if(m&&animalByTag(m[0])){location.hash=m[0].toLowerCase()}else msg.textContent="Code read, but it is not a tag from this farm."
+  };
+  img.onerror=function(){msg.textContent="That file could not be opened as an image."};
+  img.src=url
+});
+render();
+})();
+</script>
+
+</body></html>
